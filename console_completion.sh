@@ -50,24 +50,27 @@ fi
 
 _complete_sf2_app_console() {
     local cur
+    local prev
+    local console
 
     COMPREPLY=()
-    cur="${COMP_WORDS[COMP_CWORD]}"
 
-    # Assume first word is the actual app/console command
+    _get_comp_words_by_ref -n : -c cur -p prev
     console="${COMP_WORDS[0]}"
 
-    if [[ ${COMP_CWORD} == 1 ]] ; then
+    if [[ $prev == $console ]] ; then
         # No command found, return the list of available commands
-        cmds=` ${console}  --no-ansi | sed -n -e '/^Available commands/,//p' | grep -n '^ ' | sed -e 's/^ \+//' | awk '{ print $2 }'`
+        values=` ${console}  --no-ansi | sed -n -e '/^Available commands/,//p' | grep -n '^ ' | sed -e 's/^ \+//' | awk '{ print $2 }'`
     else
         # Commands found, parse options
-        cmds=` ${console} ${COMP_WORDS[1]} --no-ansi --help | sed -n -e '/^Options/,/^$/p' | grep -n '^ ' | sed -e 's/^ \+//' | awk '{ print $2 }'`
+        values=` ${console} ${prev} --no-ansi --help | sed -n -e '/^Options/,/^$/p' | grep -n '^ ' | sed -e 's/^ \+//' | awk '{ print $2 }'`
     fi
 
-    COMPREPLY=( $(compgen -W "${cmds}" -- ${cur}) )
+    COMPREPLY=( $(compgen -W "${values}" -- ${cur}) )
+    
+    __ltrim_colon_completions "$cur"
+
     return 0
 }
 
-export COMP_WORDBREAKS="\ \"\\'><=;|&("
 complete -F _complete_sf2_app_console console
